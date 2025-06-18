@@ -1,7 +1,7 @@
 import React from 'react'
 import { Episode } from '../interfaces/appInterfaces'
 import useFetchCharacter from '../hooks/useFetchCharacter';
-import Image from 'next/image';
+import CharacterDetails from './CharacterDetails';
 
 type CharacterProps = {
     selectedEpisode: Episode | undefined;
@@ -12,10 +12,7 @@ const Characters = ({selectedEpisode}: CharacterProps) => {
   return (
     <div className='grid grid-cols-5 gap-4 p-4'>
             {characters?.map((character) => (
-                <div key={character.id}>
-                    <Image src={character.image} alt={character.name} width='50' height='50' />
-                    <h3 className='text-lg font-semibold'>{character.name}</h3>
-                </div>
+                <CharacterDetails key={character.id} character={character} />
             ))}
     </div>
   )
