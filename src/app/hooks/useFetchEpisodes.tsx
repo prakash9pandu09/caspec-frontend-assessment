@@ -3,32 +3,37 @@
 import { useState, useEffect } from 'react';
 import { Episode, EpisodeResponse } from '../interfaces/appInterfaces';
 
-const useFetchEpisodes = () => {
+const useFetchEpisodes = (pageNumber: number) => {
     const [episodes, setEpisodes] = useState<Episode[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
+    const [hasMore, setHasMore] = useState<boolean>(true);
+    const [totalPages, setTotalPages] = useState<number>(1);
+    const fetchEpisodes = async (page: number) => {
+        try {
+            const fetchedEpisodes = await fetch(`https://rickandmortyapi.com/api/episode?page=${page}`);
+            if (!fetchedEpisodes.ok) {
+                throw new Error('Network response was not ok');
+            }
+            const data: EpisodeResponse = await fetchedEpisodes.json();
+            setHasMore(data.info.next !== null);
+            setTotalPages(data.info.pages);
+            setEpisodes(prev => [...prev, ...data.results]);
+        } catch (err) {
+            console.error('Failed to fetch episodes:', err);
+            setError('Failed to fetch episodes');
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
-        const fetchEpisodes = async () => {
-            try {
-                const fetchedEpisodes = await fetch('https://rickandmortyapi.com/api/episode');
-                if (!fetchedEpisodes.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                const data: EpisodeResponse = await fetchedEpisodes.json();
-                setEpisodes(data.results || []);
-            } catch (err) {
-                console.error('Failed to fetch episodes:', err);
-                setError('Failed to fetch episodes');
-            } finally {
-                setLoading(false);
-            }
-        };
+        if(hasMore) {
+            fetchEpisodes(pageNumber);
+        }
+    }, [pageNumber, hasMore]);
 
-        fetchEpisodes();
-    }, []);
-
-    return { episodes, loading, error };
+    return { episodes, loading, error, hasMore, totalPages };
 };
 
 export default useFetchEpisodes;
